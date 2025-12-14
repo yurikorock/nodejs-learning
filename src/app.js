@@ -7,8 +7,12 @@ app.get('/', (request, response) => {
 });
 
 app.get('/students/:id', (req, res) => {
-  console.log(req.params);
-  res.json({ status: 200, message: 'Successfully get student', data: {} });
+  console.log(req.params.id);
+  res.json({
+    status: 200,
+    message: 'Successfully get student',
+    data: { id: req.params.id },
+  });
 });
 
 export default app;

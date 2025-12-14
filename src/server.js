@@ -1,8 +1,12 @@
+import 'dotenv/config';
 import app from './app.js';
+import { initDatabaseConnection } from './db.js';
 
 const PORT = 8080;
 
-function bootstrap() {
+async function bootstrap() {
+  await initDatabaseConnection();
+
   app.listen(PORT, (error) => {
     if (error) {
       throw error;
@@ -10,4 +14,4 @@ function bootstrap() {
     console.log(`Server started on port ${PORT}`);
   });
 }
-bootstrap();
+bootstrap().catch((error) => console.error(error));
