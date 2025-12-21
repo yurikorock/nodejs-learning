@@ -1,43 +1,14 @@
 import express from 'express';
-import { Student } from './models/students.js';
-
+import studentRoute from './routes/students.js';
+import { notFoundHanler } from './middlewars/notFoundHandler.js';
+import { errorHandler } from './middlewars/errorHandler.js';
 const app = express();
-app.use(express.json());
 
-app.get('/students', async (request, response) => {
-  const students = await Student.find();
-  // console.log(students);
+app.use('/students', studentRoute);
+// app.use(express.json());
 
-  response.json({
-    status: 200,
-    message: 'Successfully get all students',
-    data: students,
-  });
-});
+app.use(notFoundHanler);
 
-app.get('/students/:id', async (req, res) => {
-  const student = await Student.findById(req.params.id);
-  if (student === null) {
-    return res
-      .status(400)
-      .json({ status: 404, message: 'Student not found', data: null });
-  }
-  res.json({
-    status: 200,
-    message: 'Successfully get one student',
-    data: student,
-  });
-});
-
-app.post('/students', async (req, res) => {
-  const student = await Student.create({
-    name: 'John2',
-    year: 1990,
-    gender: 'male',
-    onDuty: true,
-  });
-
-  res.status(201).json(student);
-});
+app.use(errorHandler);
 
 export default app;

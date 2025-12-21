@@ -1,8 +1,9 @@
 import 'dotenv/config';
 import app from './app.js';
 import { initDatabaseConnection } from './db.js';
+import { getEnvVariable } from './utils/getEnvVariable.js';
 
-const PORT = 8080;
+const PORT = getEnvVariable('PORT') || 8080;
 
 async function bootstrap() {
   await initDatabaseConnection();
