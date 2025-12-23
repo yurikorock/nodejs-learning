@@ -4,8 +4,10 @@ import { notFoundHanler } from './middlewars/notFoundHandler.js';
 import { errorHandler } from './middlewars/errorHandler.js';
 const app = express();
 
+app.use(express.json());// парсить наше body, яке приходить з фронтенда
+
 app.use('/students', studentRoute);
-// app.use(express.json());
+
 
 app.use(notFoundHanler);
 

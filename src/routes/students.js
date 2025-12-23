@@ -2,6 +2,10 @@ import express from 'express';
 import {
   getStudentsController,
   getStudentController,
+  createStudentController,
+  deleteStudentController,
+  updateStudentController,
+  replaceStudentController
 } from '../controllers/students.js';
 import { ctrlWrapper } from '../utils/ctrlWrapper.js';
 
@@ -11,14 +15,12 @@ router.get('/', ctrlWrapper(getStudentsController));
 
 router.get('/:id', ctrlWrapper(getStudentController));
 
-// router.post('/students', async (req, res) => {
-//   const student = await Student.create({
-//     name: 'John2',
-//     year: 1990,
-//     gender: 'male',
-//     onDuty: true,
-//   });
+router.post('/',ctrlWrapper(createStudentController));
 
-//   res.status(201).json(student);
-// });
+router.delete('/:id', ctrlWrapper(deleteStudentController));
+
+router.patch('/:id', ctrlWrapper(updateStudentController));
+
+router.put("/:id", ctrlWrapper(replaceStudentController));
+
 export default router;
