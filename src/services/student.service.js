@@ -1,8 +1,45 @@
 import { Student } from '../models/students.js';
 
-export function getStudents() {
-  return Student.find();
-  // throw new Error("Cannot complete operation");
+export async function getStudents(page, perPage, sortBy, sortOrder, filter) {
+  // показує скільки документів нам треба пропустити для конкретної сторінки
+  const skip = page > 0 ? (page - 1) * perPage : 0;
+
+  const studentQuery = Student.find();
+
+  //фільтрація елментів
+  if (typeof filter.minYear !== 'undefined') {
+    studentQuery.where('year').gte(filter.minYear);
+  }
+
+  if (typeof filter.maxYear !== 'undefined') {
+    studentQuery.where('year').lte(filter.maxYear);
+  }
+
+  //   //визначаємо загальну кількість студентів
+  //   const total = await Student.find().countDocuments();
+  //   //визначаємо самих студентів
+  //   const students = await studentQuery.skip(skip).limit(perPage);
+
+  // а можна зробити щоб вони відбувались паралельно
+  const [total, students] = await Promise.all([
+    Student.find().merge(studentQuery).countDocuments(),
+    studentQuery
+      .sort({ [sortBy]: sortOrder })
+      .skip(skip)
+      .limit(perPage),
+  ]); //merge(studentQuery) для того щоб повертало фільтровану кількість, а не загальну
+
+  const totalPages = Math.ceil(total / perPage);
+
+  return {
+    students,
+    total,
+    page,
+    perPage,
+    totalPages,
+    hasNextPage: totalPages > page,
+    hasPreviousPage: page > 1,
+  };
 }
 
 export function getStudentById(studentId) {

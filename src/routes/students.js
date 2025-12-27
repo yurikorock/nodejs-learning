@@ -5,22 +5,39 @@ import {
   createStudentController,
   deleteStudentController,
   updateStudentController,
-  replaceStudentController
+  replaceStudentController,
 } from '../controllers/students.js';
 import { ctrlWrapper } from '../utils/ctrlWrapper.js';
+import { isValidID } from '../middlewars/isValidId.js';
+import { validateBody } from '../middlewars/validateBody.js';
+import { studentSchema, updateStudentSchema } from '../validation/students.js';
 
 const router = express.Router();
 
 router.get('/', ctrlWrapper(getStudentsController));
 
-router.get('/:id', ctrlWrapper(getStudentController));
+router.get('/:id', isValidID, ctrlWrapper(getStudentController));
 
-router.post('/',ctrlWrapper(createStudentController));
+router.post(
+  '/',
+  validateBody(studentSchema),
+  ctrlWrapper(createStudentController),
+);
 
-router.delete('/:id', ctrlWrapper(deleteStudentController));
+router.delete('/:id', isValidID, ctrlWrapper(deleteStudentController));
 
-router.patch('/:id', ctrlWrapper(updateStudentController));
+router.patch(
+  '/:id',
+  isValidID,
+  validateBody(updateStudentSchema),
+  ctrlWrapper(updateStudentController),
+);
 
-router.put("/:id", ctrlWrapper(replaceStudentController));
+router.put(
+  '/:id',
+  isValidID,
+  validateBody(studentSchema),
+  ctrlWrapper(replaceStudentController),
+);
 
 export default router;
