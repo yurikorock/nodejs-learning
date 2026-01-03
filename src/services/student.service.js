@@ -1,7 +1,7 @@
 import { Student } from '../models/students.js';
 
 export async function getStudents(page, perPage, sortBy, sortOrder, filter) {
-  // показує скільки документів нам треба пропустити для конкретної сторінки
+  // показує скільки документів нам треба пропустити для конкретної сторінки для пагінації
   const skip = page > 0 ? (page - 1) * perPage : 0;
 
   const studentQuery = Student.find();
