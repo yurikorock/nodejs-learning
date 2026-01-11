@@ -17,7 +17,7 @@ export async function getStudentsController(req, res) {
   const { sortBy, sortOrder } = parseSortParams(req.query);
   const filter = parseFilterParams(req.query);
 
-  const students = await getStudents(page, perPage, sortBy, sortOrder, filter);
+  const students = await getStudents(page, perPage, sortBy, sortOrder, filter, req.user.id); // req.user.id для сортування хто має доступ до своїх студентів
   // console.log(students);
   res.json({
     status: 200,
@@ -28,11 +28,17 @@ export async function getStudentsController(req, res) {
 
 export async function getStudentController(req, res) {
   const student = await getStudentById(req.params.id);
+
   if (student === null) {
     throw new createHttpError.NotFound('Student not found'); // alternative
     // return res
     //   .status(404)
     //   .json({ status: 404, message: 'Student not found', data: null });
+  }
+
+  if(student.ownerId.toString() !== req.user.id.toString()){
+    // throw new createHttpError.Forbidden('Student resctricted'); // academical response
+    throw new createHttpError.NotFound('Student not found'); // best practice
   }
   res.json({
     status: 200,
@@ -42,7 +48,11 @@ export async function getStudentController(req, res) {
 }
 
 export async function createStudentController(req, res) {
-  const student = await createStudent(req.body);
+  // const student = await createStudent(req.body); було
+  const student = await createStudent({...req.body, ownerId: req.user.id}); // стало
+// ownerId: req.user.id добавили, щоб визначати юзера хто власник створення
+
+
   console.log(student);
   res.status(201).json({
     status: 201,

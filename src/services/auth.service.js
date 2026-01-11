@@ -2,6 +2,7 @@ import bcrypt from 'bcrypt';
 import createHttpError from 'http-errors';
 import { User } from '../models/user.js';
 import { Session } from '../models/session.js';
+import crypto from 'node:crypto'; //for generate token
 
 export async function registerUser(payload) {
   const user = await User.findOne({ email: payload.email });
@@ -27,12 +28,42 @@ export async function loginUser(email, password) {
   }
   // коли вже перевірили логін і пароль можемо видавати юзеру сесію
 
-  await Session.deleteOne({ userId: user._id });
+  await Session.deleteOne({ userId: user._id }); //видаляємо сесію, якщо вона є
 
   return Session.create({
     userId: user._id,
-    accessToken: 'Access',
-    refreshToken: 'Refersh',
+    accessToken: crypto.randomBytes(30).toString('base64'),
+    refreshToken: crypto.randomBytes(30).toString('base64'),
+    accessTokenValidUntil: new Date(Date.now() + 10 * 60 * 1000), // 10 min
+    refreshTokenValidUntil: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hr
+  });
+}
+
+export async function logoutUser(sessionId) {
+  await Session.deleteOne({ _id: sessionId });
+}
+
+export async function refreshSession(sessionId, refreshToken) {
+  const session = await Session.findById(sessionId);
+  if (session === null) {
+    throw new createHttpError.Unauthorized('Session not found');
+  }
+
+  if (session.refreshToken !== refreshToken) {
+    throw new createHttpError.Unauthorized('Refresh token is invalid');
+  }
+
+  if (session.refreshTokenValidUntil < new Date()) {
+    throw new createHttpError.Unauthorized('Refresh token is expired');
+  }
+
+
+  await Session.deleteOne({ _id: session._id}); //видаляємо сесію, якщо вона є
+
+  return Session.create({
+    userId: session.userId,
+    accessToken: crypto.randomBytes(30).toString('base64'),
+    refreshToken: crypto.randomBytes(30).toString('base64'),
     accessTokenValidUntil: new Date(Date.now() + 10 * 60 * 1000), // 10 min
     refreshTokenValidUntil: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hr
   });

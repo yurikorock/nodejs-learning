@@ -1,10 +1,17 @@
 import { Student } from '../models/students.js';
 
-export async function getStudents(page, perPage, sortBy, sortOrder, filter) {
+export async function getStudents(
+  page,
+  perPage,
+  sortBy,
+  sortOrder,
+  filter,
+  ownerId,
+) {
   // показує скільки документів нам треба пропустити для конкретної сторінки для пагінації
   const skip = page > 0 ? (page - 1) * perPage : 0;
 
-  const studentQuery = Student.find();
+  const studentQuery = Student.find({ ownerId }); // пізніше додали ownerId фільтр для отримання власних студентів
 
   //фільтрація елментів
   if (typeof filter.minYear !== 'undefined') {
