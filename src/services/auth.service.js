@@ -1,8 +1,11 @@
 import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 import createHttpError from 'http-errors';
 import { User } from '../models/user.js';
 import { Session } from '../models/session.js';
+import { getEnvVariable } from '../utils/getEnvVariable.js';
 import crypto from 'node:crypto'; //for generate token
+import { sendMail } from '../utils/sendMail.js';
 
 export async function registerUser(payload) {
   const user = await User.findOne({ email: payload.email });
@@ -57,8 +60,7 @@ export async function refreshSession(sessionId, refreshToken) {
     throw new createHttpError.Unauthorized('Refresh token is expired');
   }
 
-
-  await Session.deleteOne({ _id: session._id}); //видаляємо сесію, якщо вона є
+  await Session.deleteOne({ _id: session._id }); //видаляємо сесію, якщо вона є
 
   return Session.create({
     userId: session.userId,
@@ -67,4 +69,50 @@ export async function refreshSession(sessionId, refreshToken) {
     accessTokenValidUntil: new Date(Date.now() + 10 * 60 * 1000), // 10 min
     refreshTokenValidUntil: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hr
   });
+}
+
+export async function requestPasswordReset(email) {
+  const user = await User.findOne({ email });
+
+  if (user === null) {
+    // throw new createHttpError.NotFound('User not found'); академічно так
+    return;
+  }
+
+  const token = jwt.sign(
+    {
+      sub: user._id,
+      name: user.name,
+    },
+    getEnvVariable('SECRET_JWT'),
+    { expiresIn: '15m' },
+  );
+
+  await sendMail({
+    to: email,
+    subject: 'Reset password',
+    html: `<p>To reset password please visit this <a href="http://sbcascascsa/${token}"/></p>`,
+  });
+}
+
+export async function resetPassword(token, password) {
+  try {
+    const decoded = jwt.verify(token, 'SECRET_JWT');
+    const user = await User.findById(decoded.sub);
+    if (user === null) {
+      throw new createHttpError.NotFound('User not found');
+    }
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    await User.findByIdAndUpdate(user._id, { password: hashedPassword });
+  } catch (error) {
+    if (error.name === 'TokenExpiredError') {
+      throw new createHttpError.Unauthorized('Token is expired');
+    }
+
+    if (error.name === 'JsonWebTokenError') {
+      throw new createHttpError.Unauthorized('Token is unauthorized');
+    }
+    throw error;
+  }
 }
