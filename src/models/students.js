@@ -1,3 +1,4 @@
+
 import mongoose from 'mongoose';
 
 const studentSchema = new mongoose.Schema(
@@ -14,6 +15,10 @@ const studentSchema = new mongoose.Schema(
       type: String,
       required: true,
       enum: ['male', 'female'],
+    },
+    avatar: {
+      type: String,
+      default: null,
     },
     onDuty: {
       type: Boolean,

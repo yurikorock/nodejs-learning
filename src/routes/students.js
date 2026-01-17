@@ -11,6 +11,7 @@ import { ctrlWrapper } from '../utils/ctrlWrapper.js';
 import { isValidID } from '../middlewars/isValidId.js';
 import { validateBody } from '../middlewars/validateBody.js';
 import { studentSchema, updateStudentSchema } from '../validation/students.js';
+import { upload } from '../middlewars/upload.js';
 
 const router = express.Router();
 
@@ -20,6 +21,7 @@ router.get('/:id', isValidID, ctrlWrapper(getStudentController));
 
 router.post(
   '/',
+  upload.single("avatar"),
   validateBody(studentSchema),
   ctrlWrapper(createStudentController),
 );

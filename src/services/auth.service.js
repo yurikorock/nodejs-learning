@@ -1,3 +1,5 @@
+import * as fs from 'node:fs';
+import path from 'node:path';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import createHttpError from 'http-errors';
@@ -6,6 +8,12 @@ import { Session } from '../models/session.js';
 import { getEnvVariable } from '../utils/getEnvVariable.js';
 import crypto from 'node:crypto'; //for generate token
 import { sendMail } from '../utils/sendMail.js';
+import Handlebars from 'handlebars';
+
+const REQUEST_PASSWORD_RESET_TEMPLATE = fs.readFileSync(
+  path.resolve('src/templates/request-password-reset.hbs'),
+  { encoding: 'utf-8' },
+);
 
 export async function registerUser(payload) {
   const user = await User.findOne({ email: payload.email });
@@ -88,10 +96,14 @@ export async function requestPasswordReset(email) {
     { expiresIn: '15m' },
   );
 
+  const template = Handlebars.compile(REQUEST_PASSWORD_RESET_TEMPLATE);
+
   await sendMail({
     to: email,
     subject: 'Reset password',
-    html: `<p>To reset password please visit this <a href="http://sbcascascsa/${token}"/></p>`,
+    html: template({
+      resetPasswordLink: `http://localhost:3000/reset-password/${token}`,
+    }),
   });
 }
 
