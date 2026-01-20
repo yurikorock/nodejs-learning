@@ -9,13 +9,19 @@ info:
     url: http://www.apache.org/licenses/LICENSE-2.0.html
   description:
     This is a documentation of University of GOIT
+
+servers:
+      - url: http://127.0.0.1:8080
+
 tags:
   - name: Students
-    description: Operations about users.
-  - name: Auth
-    description: Auth operations.
-servers:
-  - url: http://127.0.0.1:8080
+    description: Operations about students.
+paths:
+  /students/{id}:
+    get:
+      $ref: "../swagger/path/students/get.yaml"
+
+
 components:
   securitySchemes:
     bearerAuth:

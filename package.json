@@ -6,12 +6,15 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon src/server.js",
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "build-docs": "redocly bundle docs/openapi.yaml --ext json -o docs/swagger.json",
+    "preview-docs": "redocly build-docs docs/openapi.yaml -o docs/index.html"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+
     "@eslint/js": "^9.2.0",
     "@faker-js/faker": "^9.8.0",
     "@redocly/cli": "^2.14.5",
