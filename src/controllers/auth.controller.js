@@ -1,5 +1,3 @@
-
-
 import {
   registerUser,
   loginUser,
@@ -7,7 +5,9 @@ import {
   refreshSession,
   requestPasswordReset,
   resetPassword,
+  loginOrRegister,
 } from '../services/auth.service.js';
+import { getOAuthURL, validateCode } from '../utils/googleOAuth.js';
 
 export async function registerController(req, res) {
   const user = await registerUser(req.body);
@@ -88,5 +88,42 @@ export async function resetPasswordController(req, res) {
 
   await resetPassword(token, password);
 
-  res.json({ status: 200, message: '' });
+  res.json({ status: 200, message: 'Reset password successfully' });
+}
+
+export async function getOAuthController(req, res) {
+  const url = await getOAuthURL();
+  res.json({
+    status: 200,
+    message: 'Successfully getOAuth url',
+    data: {
+      oauth_url: url,
+    },
+  });
+}
+export async function confirmOAuthController(req, res) {
+  const ticket = await validateCode(req.body.code); //витягуємо код с адресної строки браузера
+
+  const session = await loginOrRegister(
+    ticket.payload.email,
+    ticket.payload.name,
+  ); // видаємо сесію користувачеві
+
+  res.cookie('sessionId', session._id, {
+    httpOnly: true,
+    expire: session.refreshTokenValidUntil,
+  });
+
+  res.cookie('refreshToken', session.refreshToken, {
+    httpOnly: true,
+    expire: session.refreshTokenValidUntil,
+  });
+
+  res.json({
+    status: 200,
+    message: 'Login via OAuth successfully',
+    data: {
+      accessToken: session.accessToken,
+    },
+  });
 }

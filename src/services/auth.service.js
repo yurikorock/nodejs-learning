@@ -128,3 +128,27 @@ export async function resetPassword(token, password) {
     throw error;
   }
 }
+
+export async function loginOrRegister(email, name) {
+  let user = await User.findOne({ email });
+
+  if (user === null) {
+    const password = await bcrypt.hash(
+      // генеруємо пароль який нам дасть ідентифікувати користувача, якщо його немає
+      // так як пароль не передається google, а в схемі юзера він обовязковий
+      crypto.randomBytes(30).toString('base64'),
+      10,
+    );
+    user = await User.create({ name, email, password });
+  }
+
+  await Session.deleteOne({ userId: user._id }); //видаляємо сесію, якщо вона є
+
+  return Session.create({
+    userId: user._id,
+    accessToken: crypto.randomBytes(30).toString('base64'),
+    refreshToken: crypto.randomBytes(30).toString('base64'),
+    accessTokenValidUntil: new Date(Date.now() + 10 * 60 * 1000), // 10 min
+    refreshTokenValidUntil: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hr
+  });
+}
